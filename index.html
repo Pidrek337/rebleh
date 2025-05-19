@@ -3,96 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Player Launcher</title>
+    <title>Roblox App Launcher</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #00a2ff, #0055ff);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: #333;
+            color: white;
+            text-align: center;
         }
         
         .container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             max-width: 500px;
             width: 90%;
         }
         
         .logo {
-            width: 150px;
+            width: 200px;
             margin-bottom: 20px;
         }
         
         h1 {
-            color: #e60012;
-            margin-bottom: 20px;
+            margin: 0 0 20px;
+            font-size: 2.5em;
         }
         
         p {
             margin-bottom: 30px;
+            font-size: 1.1em;
             line-height: 1.6;
         }
         
         .launch-btn {
-            background-color: #00a2ff;
+            background-color: #00cc66;
             color: white;
             border: none;
-            padding: 12px 30px;
-            font-size: 18px;
-            border-radius: 5px;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 204, 102, 0.4);
         }
         
         .launch-btn:hover {
-            background-color: #0088cc;
+            background-color: #00b359;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 204, 102, 0.6);
+        }
+        
+        .launch-btn:active {
+            transform: translateY(0);
         }
         
         .instructions {
             margin-top: 30px;
-            font-size: 14px;
-            color: #666;
-            text-align: left;
+            font-size: 0.9em;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Roblox_player_logo.svg/1200px-Roblox_player_logo.svg.png" alt="Roblox Logo" class="logo">
-        <h1>Roblox Player Launcher</h1>
-        <p>Click the button below to launch Roblox Player and start playing your favorite games!</p>
+        <h1>Roblox App Launcher</h1>
+        <p>Click the button below to launch the Roblox Player application on your computer.</p>
         
-        <button class="launch-btn" onclick="launchRoblox()">Launch Roblox Player</button>
+        <button class="launch-btn" onclick="launchRobloxApp()">LAUNCH ROBLOX PLAYER</button>
         
         <div class="instructions">
-            <h3>Having trouble?</h3>
-            <ul>
-                <li>Make sure you have Roblox Player installed on your computer</li>
-                <li>If prompted, allow your browser to open the Roblox application</li>
-                <li>If the game doesn't launch, try opening Roblox directly from the app</li>
-            </ul>
+            <p>Note: This requires the Roblox Player to be installed on your computer.</p>
+            <p>If nothing happens, <a href="https://www.roblox.com/download" style="color: #00ccff;">download Roblox</a> first.</p>
         </div>
     </div>
 
     <script>
-        function launchRoblox() {
-            // This attempts to open the Roblox protocol handler
-            // It will launch the installed Roblox application
-            window.location.href = "roblox://";
+        function launchRobloxApp() {
+            // Primary method - tries to launch the Roblox app directly
+            window.location.href = "roblox-player:1";
             
-            // Fallback in case the protocol handler fails
+            // Fallback method after a short delay
             setTimeout(function() {
-                window.location.href = "https://www.roblox.com/download";
-            }, 500);
+                // Check if we're still on the page (meaning the launch failed)
+                if (!document.hidden) {
+                    // Redirect to download page if launch failed
+                    window.location.href = "https://www.roblox.com/download";
+                }
+            }, 1000);
+        }
+        
+        // Try to launch immediately if this is a return from failed launch
+        if (window.location.hash === "#retry") {
+            setTimeout(launchRobloxApp, 300);
         }
     </script>
 </body>
