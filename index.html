@@ -3,202 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Roblox Player</title>
+    <title>Roblox Browser with Gamepad</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
-        }
-        
-        .header {
-            background-color: #00a2ff;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
             color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
-        
-        .logo {
-            height: 60px;
-            margin-bottom: 10px;
-        }
-        
         .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .game-selector {
-            margin-bottom: 20px;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            height: 100vh;
         }
-        
-        .game-input {
-            flex-grow: 1;
+        .header {
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+            background-color: #1a1a1a;
+            text-align: center;
         }
-        
-        .load-btn {
-            background-color: #00a2ff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        .load-btn:hover {
-            background-color: #0088cc;
-        }
-        
-        .player-container {
+        .game-container {
+            flex: 1;
             position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            background-color: black;
-            border-radius: 4px;
             overflow: hidden;
         }
-        
-        .player-iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-        
-        .instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            border-left: 4px solid #00a2ff;
-        }
-        
-        .game-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .game-card {
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .game-thumbnail {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-        }
-        
-        .game-title {
+        .gamepad-status {
             padding: 10px;
-            font-weight: bold;
+            background-color: #1a1a1a;
+            text-align: center;
+            font-size: 14px;
+        }
+        .controls-info {
+            padding: 10px;
+            background-color: #1a1a1a;
+            text-align: center;
+            font-size: 12px;
+            display: none;
+        }
+        .btn {
+            background-color: #00a2ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background-color: #0088cc;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Roblox_player_logo.svg/1200px-Roblox_player_logo.svg.png" alt="Roblox Logo" class="logo">
-        <h1>Embedded Roblox Player</h1>
-    </div>
-    
     <div class="container">
-        <div class="game-selector">
-            <input type="text" class="game-input" id="gameId" placeholder="Enter Roblox Game ID (e.g. 1818 for MeepCity)" value="1818">
-            <button class="load-btn" onclick="loadGame()">Load Game</button>
+        <div class="header">
+            <h1>Roblox Browser with Gamepad</h1>
+            <button id="connectBtn" class="btn">Подключить геймпад</button>
+            <button id="fullscreenBtn" class="btn">Полный экран</button>
         </div>
-        
-        <div class="player-container">
-            <iframe class="player-iframe" id="robloxPlayer" allowfullscreen></iframe>
+        <div class="game-container">
+            <iframe id="robloxFrame" src="https://www.roblox.com/games/" allowfullscreen></iframe>
         </div>
-        
-        <div class="instructions">
-            <h3>How to use:</h3>
-            <ol>
-                <li>Enter a Roblox Game ID in the input field (find these in the URL of any Roblox game)</li>
-                <li>Click "Load Game" to launch it in the embedded player</li>
-                <li>Use fullscreen mode for the best experience</li>
-            </ol>
+        <div class="gamepad-status" id="gamepadStatus">
+            Геймпад не подключен. Нажмите кнопку "Подключить геймпад" и нажмите любую кнопку на геймпаде.
         </div>
-        
-        <h2>Popular Games:</h2>
-        <div class="game-list" id="popularGames">
-            <!-- Popular games will be added here by JavaScript -->
+        <div class="controls-info" id="controlsInfo">
+            <strong>Управление:</strong> Левый стик - движение, Правый стик - камера, A - прыжок, B - действие, X - взаимодействие, Y - меню, Триггеры - дополнительные действия
         </div>
     </div>
 
     <script>
-        // Popular Roblox games with their IDs and thumbnails
-        const popularGames = [
-            { id: 1818, name: "MeepCity", thumbnail: "https://tr.rbxcdn.com/5b5a5a6e9c8e9b3b5c0d0e0f0a0b0c0d/352/352/Image/Png" },
-            { id: 3956818381, name: "Adopt Me!", thumbnail: "https://tr.rbxcdn.com/5b5a5a6e9c8e9b3b5c0d0e0f0a0b0c0d/352/352/Image/Png" },
-            { id: 142823291, name: "Murder Mystery 2", thumbnail: "https://tr.rbxcdn.com/5b5a5a6e9c8e9b3b5c0d0e0f0a0b0c0d/352/352/Image/Png" },
-            { id: 292439477, name: "Royale High", thumbnail: "https://tr.rbxcdn.com/5b5a5a6e9c8e9b3b5c0d0e0f0a0b0c0d/352/352/Image/Png" },
-            { id: 1550236048, name: "Piggy", thumbnail: "https://tr.rbxcdn.com/5b5a5a6e9c8e9b3b5c0d0e0f0a0b0c0d/352/352/Image/Png" }
-        ];
+        // Элементы DOM
+        const robloxFrame = document.getElementById('robloxFrame');
+        const gamepadStatus = document.getElementById('gamepadStatus');
+        const controlsInfo = document.getElementById('controlsInfo');
+        const connectBtn = document.getElementById('connectBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-        // Load popular games into the list
-        function loadPopularGames() {
-            const container = document.getElementById('popularGames');
-            container.innerHTML = '';
-            
-            popularGames.forEach(game => {
-                const gameCard = document.createElement('div');
-                gameCard.className = 'game-card';
-                gameCard.innerHTML = `
-                    <img src="${game.thumbnail}" alt="${game.name}" class="game-thumbnail">
-                    <div class="game-title">${game.name}</div>
-                `;
-                gameCard.addEventListener('click', () => {
-                    document.getElementById('gameId').value = game.id;
-                    loadGame();
-                });
-                container.appendChild(gameCard);
-            });
-        }
+        // Переменные для геймпада
+        let gamepadConnected = false;
+        let gamepadIndex = null;
+        let animationFrameId = null;
 
-        // Load a Roblox game in the iframe
-        function loadGame() {
-            const gameId = document.getElementById('gameId').value.trim();
-            if (!gameId) return;
-            
-            const iframe = document.getElementById('robloxPlayer');
-            iframe.src = `https://www.roblox.com/games/embed?gameId=${gameId}`;
-            
-            // Scroll to the player
-            iframe.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Initialize the page
-        window.onload = function() {
-            loadPopularGames();
-            loadGame(); // Load default game on startup
+        // Коды клавиш для эмуляции
+        const keyCodes = {
+            leftStickUp: 'KeyW',
+            leftStickDown: 'KeyS',
+            leftStickLeft: 'KeyA',
+            leftStickRight: 'KeyD',
+            rightStickUp: 'ArrowUp',
+            rightStickDown: 'ArrowDown',
+            rightStickLeft: 'ArrowLeft',
+            rightStickRight: 'ArrowRight',
+            buttonA: 'Space',
+            buttonB: 'KeyE',
+            buttonX: 'KeyF',
+            buttonY: 'KeyQ',
+            leftTrigger: 'KeyZ',
+            rightTrigger: 'KeyX'
         };
+
+        // Подключение геймпада
+        connectBtn.addEventListener('click', () => {
+            if (!gamepadConnected) {
+                window.addEventListener('gamepadconnected', (e) => {
+                    gamepadConnected = true;
+                    gamepadIndex = e.gamepad.index;
+                    gamepadStatus.textContent = `Геймпад подключен: ${e.gamepad.id}`;
+                    controlsInfo.style.display = 'block';
+                    connectBtn.textContent = 'Отключить геймпад';
+                    startGamepadLoop();
+                });
+
+                window.addEventListener('gamepaddisconnected', (e) => {
+                    if (e.gamepad.index === gamepadIndex) {
+                        gamepadConnected = false;
+                        gamepadIndex = null;
+                        gamepadStatus.textContent = 'Геймпад отключен. Нажмите кнопку "Подключить геймпад" и нажмите любую кнопку на геймпаде.';
+                        controlsInfo.style.display = 'none';
+                        connectBtn.textContent = 'Подключить геймпад';
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                });
+
+                // Запрашиваем геймпады, если они уже подключены
+                const gamepads = navigator.getGamepads();
+                for (let i = 0; i < gamepads.length; i++) {
+                    if (gamepads[i]) {
+                        gamepadConnected = true;
+                        gamepadIndex = i;
+                        gamepadStatus.textContent = `Геймпад подключен: ${gamepads[i].id}`;
+                        controlsInfo.style.display = 'block';
+                        connectBtn.textContent = 'Отключить геймпад';
+                        startGamepadLoop();
+                        break;
+                    }
+                }
+
+                if (!gamepadConnected) {
+                    gamepadStatus.textContent = 'Пожалуйста, нажмите любую кнопку на геймпаде...';
+                }
+            } else {
+                // Эмулируем отключение геймпада
+                const event = new Event('gamepaddisconnected');
+                event.gamepad = { index: gamepadIndex };
+                window.dispatchEvent(event);
+            }
+        });
+
+        // Полноэкранный режим
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Ошибка при переходе в полноэкранный режим: ${err.message}`);
+                });
+                fullscreenBtn.textContent = 'Выйти из полного экрана';
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.textContent = 'Полный экран';
+            }
+        });
+
+        // Функция для отправки событий клавиш в iframe
+        function sendKeyEvent(type, keyCode) {
+            const event = new KeyboardEvent(type, {
+                key: keyCode,
+                code: keyCode,
+                bubbles: true,
+                cancelable: true,
+                composed: true
+            });
+            
+            robloxFrame.contentWindow.postMessage({
+                type: 'gamepadKeyEvent',
+                eventType: type,
+                keyCode: keyCode
+            }, '*');
+            
+            try {
+                robloxFrame.contentDocument.dispatchEvent(event);
+            } catch (e) {
+                // Игнорируем ошибки безопасности
+            }
+        }
+
+        // Основной цикл опроса геймпада
+        function startGamepadLoop() {
+            function gamepadLoop() {
+                if (!gamepadConnected) return;
+                
+                const gamepad = navigator.getGamepads()[gamepadIndex];
+                if (!gamepad) return;
+                
+                // Обработка левого стика (движение)
+                const leftStickX = gamepad.axes[0];
+                const leftStickY = gamepad.axes[1];
+                
+                if (leftStickX < -0.5) {
+                    sendKeyEvent('keydown', keyCodes.leftStickLeft);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.leftStickLeft);
+                }
+                
+                if (leftStickX > 0.5) {
+                    sendKeyEvent('keydown', keyCodes.leftStickRight);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.leftStickRight);
+                }
+                
+                if (leftStickY < -0.5) {
+                    sendKeyEvent('keydown', keyCodes.leftStickUp);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.leftStickUp);
+                }
+                
+                if (leftStickY > 0.5) {
+                    sendKeyEvent('keydown', keyCodes.leftStickDown);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.leftStickDown);
+                }
+                
+                // Обработка правого стика (камера)
+                const rightStickX = gamepad.axes[2];
+                const rightStickY = gamepad.axes[3];
+                
+                if (rightStickX < -0.5) {
+                    sendKeyEvent('keydown', keyCodes.rightStickLeft);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.rightStickLeft);
+                }
+                
+                if (rightStickX > 0.5) {
+                    sendKeyEvent('keydown', keyCodes.rightStickRight);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.rightStickRight);
+                }
+                
+                if (rightStickY < -0.5) {
+                    sendKeyEvent('keydown', keyCodes.rightStickUp);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.rightStickUp);
+                }
+                
+                if (rightStickY > 0.5) {
+                    sendKeyEvent('keydown', keyCodes.rightStickDown);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.rightStickDown);
+                }
+                
+                // Обработка кнопок
+                if (gamepad.buttons[0]?.pressed) { // A
+                    sendKeyEvent('keydown', keyCodes.buttonA);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.buttonA);
+                }
+                
+                if (gamepad.buttons[1]?.pressed) { // B
+                    sendKeyEvent('keydown', keyCodes.buttonB);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.buttonB);
+                }
+                
+                if (gamepad.buttons[2]?.pressed) { // X
+                    sendKeyEvent('keydown', keyCodes.buttonX);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.buttonX);
+                }
+                
+                if (gamepad.buttons[3]?.pressed) { // Y
+                    sendKeyEvent('keydown', keyCodes.buttonY);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.buttonY);
+                }
+                
+                if (gamepad.buttons[6]?.pressed) { // Left Trigger
+                    sendKeyEvent('keydown', keyCodes.leftTrigger);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.leftTrigger);
+                }
+                
+                if (gamepad.buttons[7]?.pressed) { // Right Trigger
+                    sendKeyEvent('keydown', keyCodes.rightTrigger);
+                } else {
+                    sendKeyEvent('keyup', keyCodes.rightTrigger);
+                }
+                
+                animationFrameId = requestAnimationFrame(gamepadLoop);
+            }
+            
+            animationFrameId = requestAnimationFrame(gamepadLoop);
+        }
+
+        // Обработчик сообщений для кросс-доменной коммуникации
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'gamepadKeyEvent' && event.origin !== window.location.origin) {
+                // Здесь можно обработать сообщения от iframe, если нужно
+            }
+        });
     </script>
 </body>
 </html>
